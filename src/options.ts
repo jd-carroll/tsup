@@ -158,7 +158,10 @@ export type Options = {
    */
   clean?: boolean | string[]
   esbuildPlugins?: EsbuildPlugin[]
-  esbuildOptions?: (options: BuildOptions, context: { format: Format }) => void
+  esbuildOptions?: (
+    options: BuildOptions,
+    context: { format: Format }
+  ) => BuildOptions
   /**
    * Suppress non-error logs (excluding "onSuccess" process output)
    */

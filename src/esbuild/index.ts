@@ -5,6 +5,7 @@ import {
   BuildResult,
   formatMessages,
   Plugin as EsbuildPlugin,
+  type BuildOptions,
 } from 'esbuild'
 import { NormalizedOptions, Format } from '..'
 import { getProductionDeps, loadPkg } from '../load'
@@ -124,9 +125,6 @@ export async function runEsbuild(
       name: 'modify-options',
       setup(build) {
         pluginContainer.modifyEsbuildOptions(build.initialOptions)
-        if (options.esbuildOptions) {
-          options.esbuildOptions(build.initialOptions, { format })
-        }
       },
     },
     // esbuild's `external` option doesn't support RegExp
@@ -159,7 +157,7 @@ export async function runEsbuild(
       : options.footer
 
   try {
-    result = await esbuild({
+    let buildOptions: BuildOptions = {
       entryPoints: options.entry,
       format:
         (format === 'cjs' && splitting) || options.treeshake ? 'esm' : format,
@@ -241,7 +239,13 @@ export async function runEsbuild(
       keepNames: options.keepNames,
       pure: typeof options.pure === 'string' ? [options.pure] : options.pure,
       metafile: true,
-    })
+    }
+
+    if (options.esbuildOptions) {
+      buildOptions = options.esbuildOptions(buildOptions, { format })
+    }
+
+    result = await esbuild(buildOptions)
   } catch (error) {
     logger.error(format, 'Build failed')
     throw error
